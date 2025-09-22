@@ -1,24 +1,15 @@
 const schedule = require('node-schedule');
-const http = require('http');
+const express = require('express')
+const app = express()
+const port = 3000
 
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
 
-// Create a server object
-const server = http.createServer((req, res) => {
-  // Set the response HTTP header with HTTP status and Content type
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-
-  // Send the response body as 'Hello, World!'
-  res.end('Hello, World!\n');
-});
-
-
-const PORT = 3000;
-// Define the port to listen on const PORT = 3000;
-
-// Start the server and listen on the specified port
-server.listen(PORT, 'localhost', () => {
-  console.log(`Server running at http://localhost:${PORT}/`);
-});
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
 
 const job = schedule.scheduleJob('* * * * *', function () {
     console.log('The answer to life, the universe, and everything!');
