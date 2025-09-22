@@ -100,12 +100,14 @@ const notify = async function () {
     return notify;
 };
 
-
-app.get('/', async (req, res) => {
+const handle = async (req, res) => {
     let loans = await notify();
     console.log(loans);
     res.send(loans);
-});
+};
+
+app.get('/', handle);
+app.post('/', handle);
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
