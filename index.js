@@ -10,7 +10,6 @@ const Slack = require("@slack/bolt");
 const dotenv = require('dotenv')
 dotenv.config()
 
-console.log(process.env)
 const slack = new Slack.App({
     signingSecret: process.env.SLACK_SIGNING_SECRET,
     token: process.env.SLACK_BOT_TOKEN,
