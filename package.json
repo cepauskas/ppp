@@ -5,6 +5,7 @@
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "http": "^0.0.1-security",
+    "redis": "^5.8.2",
     "store": "^2.0.12"
   }
 }

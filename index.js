@@ -1,20 +1,20 @@
+const dotenv = require('dotenv')
+dotenv.config()
+
 const express = require('express');
 const app = express();
 const port = 3000;
 
 const cheerio = require('cheerio');
-const store = require('store');
 
 const Slack = require("@slack/bolt");
 
-const dotenv = require('dotenv')
-dotenv.config()
+const redis = require("redis").createClient({ url: process.env.REDIS_URL });
 
 const slack = new Slack.App({
     signingSecret: process.env.SLACK_SIGNING_SECRET,
     token: process.env.SLACK_BOT_TOKEN,
 });
-
 
 class Loan {
     constructor(
@@ -68,46 +68,40 @@ const pk = async function () {
     return loans;
 }
 
-const collect = async function () {
-
-    let notify = [];
-    (await pk()).forEach(loan => {
-        if (!store.get(loan.id)) {
-            notify.push(loan);
-        }
-    });
-
-    return notify;
-};
-
-
 
 const notify = async function () {
 
-    let notify = await collect();
+    await redis.connect();
 
-    notify.forEach(async loan => {
-        store.set(loan.id, 'true');
+    let notify = await pk();
+
+    for (let i = 0; i < notify.length; i++) {
+        let loan = notify[i];
+        if (await redis.get(loan.id)) {
+            continue;
+        }
+
+        await redis.set(loan.id, 'true');
 
         await slack.client.chat.postMessage({
             token: process.env.SLACK_BOT_TOKEN,
             channel: '#general',
             text: loan.toString()
         });
-    });
+    }
+
+    await redis.quit();
 
     return notify;
 };
 
 const handle = async (req, res) => {
     let loans = await notify();
-    console.log(loans);
     res.send(loans);
 };
 
 app.get('/', handle);
 app.post('/', handle);
-
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
 });
