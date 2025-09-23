@@ -20,7 +20,6 @@ class Loan {
     constructor(
         id,
         rating,
-        date,
         value,
         margin,
         duration,
@@ -28,7 +27,6 @@ class Loan {
     ) {
         this.id = id;
         this.rating = rating;
-        this.date = date;
         this.value = value;
         this.margin = margin;
         this.duration = duration;
@@ -36,7 +34,7 @@ class Loan {
     }
 
     toString() {
-        return `${this.id} ${this.rating} ${this.date} ${this.value} ${this.margin} ${this.duration} ${this.link}`;
+        return `${this.id} ${this.rating} ${this.value} ${this.margin} ${this.duration} ${this.link}`;
     }
 }
 
@@ -54,13 +52,37 @@ const pk = async function () {
         let td = $(row).find('td')
         loans.push(
             new Loan(
-                td.eq(0).text().trim().split("\n")[2].trim(),
+                `pk-${td.eq(0).text().trim().split("\n")[2].trim()}`,
                 td.eq(0).text().trim().split("\n")[0].trim(),
-                td.eq(2).text().trim(),
                 td.eq(3).text().trim(),
                 td.eq(4).text().trim(),
                 td.eq(5).text().trim(),
                 'https://www.paskoluklubas.lt/paraiskos'
+            )
+        );
+    });
+
+    return loans;
+}
+
+const finomark = async function () {
+
+    const $ = await cheerio.fromURL('https://www.finomark.lt/investavimas');
+    const loans = [];
+
+    $('.card-company').each((i, row) => {
+
+        let td = $(row).find('table tr td');
+        let href = td.find('a').attr('href');
+
+        loans.push(
+            new Loan(
+                `fino-${href.split("/")[2].trim()}`,
+                td.eq(0).text().trim(),
+                $(row).find('.progress-label').text().split("/")[0].trim(),
+                td.eq(1).find('span').eq(0).text().trim(),
+                td.eq(1).find('span').eq(1).text().trim(),
+                `https://www.finomark.lt${href}`
             )
         );
     });
@@ -73,7 +95,10 @@ const notify = async function () {
 
     await redis.connect();
 
-    let notify = await pk();
+    let notify = [];
+
+    notify = notify.concat(await pk());
+    notify = notify.concat(await finomark());
 
     for (let i = 0; i < notify.length; i++) {
         let loan = notify[i];
@@ -102,6 +127,7 @@ const handle = async (req, res) => {
 
 app.get('/', handle);
 app.post('/', handle);
-app.listen(port, () => {
+
+app.listen(port, async () => {
     console.log(`Example app listening on port ${port}`)
 });
