@@ -12,9 +12,6 @@ let port = 3000;
 let slack = new Slack(process.env.SLACK_SIGNING_SECRET, process.env.SLACK_BOT_TOKEN, '#general');
 let store = new Store(process.env.REDIS_URL);
 
-slack.send('Starting...');
-
-
 let notify = async () => {
 
     let notify = [];
@@ -44,7 +41,6 @@ let handle = async (req, res) => {
 
 let cleanup = async () => {
     await store.close();
-    await slack.send('Closing...');
 
     process.exit(0);
 };
