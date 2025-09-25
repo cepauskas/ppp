@@ -1,6 +1,6 @@
 'use strict';
 
-class App {
+module.exports = class App {
     constructor(slack, store) {
 
         this.app = require('express')();
@@ -59,6 +59,4 @@ class App {
 
         process.exit(0);
     };
-}
-
-module.exports = App;
+};
